@@ -6,19 +6,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import io.hikari9.lightdb.meta.Metadata;
-
 public class LightQuery {
-
-    // get metadata from model
-    public static Metadata meta(Class<? extends LightModel> model) {
-        return Metadata.fromModel(model);
-    }
 
     // get a cursor pointing to the result of query String
     public static Cursor rawQuery(String queryString, Object... bindParams) {
@@ -81,6 +75,33 @@ public class LightQuery {
             new String[0]
         );
         return rowsAffected > 0;
+    }
+
+    public static String dropTableIfExists(Class<? extends LightModel> model) {
+        String query = "DROP TABLE IF EXISTS " + Metadata.fromModel(model).getTableName();
+        LightDatabase.getInstance().getWritableDatabase().execSQL(query);
+        return query;
+    }
+
+    public static String createTableIfNotExists(Class<? extends LightModel> model) {
+        StringBuilder builder = new StringBuilder();
+        Metadata metadata = Metadata.fromModel(model);
+        builder.append("CREATE TABLE IF NOT EXISTS ");
+        builder.append(metadata.getTableName());
+        builder.append("(");
+        boolean first = true;
+        for (Field field : metadata.getFields()) {
+            if (!first) builder.append(",");
+            else first = false;
+            String fieldName = field.getName();
+            builder.append(fieldName);
+            if (fieldName.equals(LightModel.ID))
+                builder.append(" integer primary key");
+        }
+        builder.append(")");
+        String query = builder.toString();
+        LightDatabase.getInstance().getWritableDatabase().execSQL(query);
+        return query;
     }
 
     public static <T extends LightModel> LightQuery.Builder.Update<T> update(Class<T> model) {

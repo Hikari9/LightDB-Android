@@ -7,13 +7,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hikari9.lightdb.annotation.IgnoreField;
-import io.hikari9.lightdb.meta.Metadata;
-
 public abstract class LightModel<T extends LightModel> {
-
-    @IgnoreField
-    protected boolean lazy = false;
 
     protected Long _id; // Android default primary key is _id by convention
     public static final String ID = "_id"; // convention for ID queries
@@ -44,7 +38,12 @@ public abstract class LightModel<T extends LightModel> {
         Field[] fields = metadata.getFields();
         String[] columns = metadata.getColumnNames();
         for (int i = 0; i < fields.length; ++i) {
-            assignFieldFromCursor(this, fields[i], columns[i], cursor);
+            Class type = fields[i].getType();
+            try {
+                fields[i].set(this, LightUtils.extractCursorValue(type, cursor, columns[i]));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -56,20 +55,6 @@ public abstract class LightModel<T extends LightModel> {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static void assignFieldFromCursor(LightModel instance, Field field, String columnName, Cursor cursor) {
-        int columnId = cursor.getColumnIndex(columnName);
-        if (columnId == -1) return;
-        Class type = field.getType();
-        if (cursor.isNull(columnId)) {
-            if (type.isPrimitive())
-                return;
-            try {field.set(instance, null);}
-            catch (IllegalAccessException ex) {}
-        } else if (field.getType().isAssignableFrom(LightModel.class)) {
-            // foreign key!
         }
     }
 

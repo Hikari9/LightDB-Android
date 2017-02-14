@@ -1,11 +1,10 @@
 package io.hikari9.lightdb;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 import java.lang.reflect.Field;
 import java.util.List;
-
-import io.hikari9.lightdb.meta.Metadata;
 
 public class LightUtils {
 
@@ -56,7 +55,7 @@ public class LightUtils {
             contentValues.put(key, (Double) value);
         else if (type == float.class || type == Float.class)
             contentValues.put(key, (Float) value);
-        else if (type.isAssignableFrom(LightModel.class)) // foreign key
+        else if (type.isAssignableFrom(ForeignKey.class)) // foreign key
             contentValues.put(key, ((LightModel) value).getId());
         else if (type == boolean.class || type == Boolean.class)
             contentValues.put(key, (Boolean) value);
@@ -69,6 +68,25 @@ public class LightUtils {
         else
             contentValues.put(key, value.toString());
     }
+
+    public static Object extractCursorValue(Class type, Cursor cursor, String columnName) {
+        int columnId = cursor.getColumnIndex(columnName);
+        if (columnId == -1) return null;
+        if (cursor.isNull(columnId)) return null;
+        else if (type == long.class || type == Long.class) return cursor.getLong(columnId);
+        else if (type == int.class || type == Integer.class) return cursor.getInt(columnId);
+        else if (type == String.class) return cursor.getString(columnId);
+        else if (type == double.class || type == Double.class) return cursor.getDouble(columnId);
+        else if (type == float.class || type == Float.class) return cursor.getFloat(columnId);
+        else if (type.isAssignableFrom(ForeignKey.class)) // foreign key
+            return new ForeignKey<>(type.getClass(), cursor.getLong(columnId));
+        else if (type == boolean.class || type == Boolean.class) return cursor.getInt(columnId) != 0;
+        else if (type == byte.class || type == Byte.class) return (byte) cursor.getInt(columnId);
+        else if (type == short.class || type == Short.class) return cursor.getShort(columnId);
+        else if (type == byte[].class) return cursor.getBlob(columnId);
+        else return cursor.getString(columnId);
+    }
+
 
     public static String queryParams(String query, Object... params) {
         StringBuilder queryBuilder = new StringBuilder();

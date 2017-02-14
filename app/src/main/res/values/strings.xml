@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">LightDB</string>
+    <string name="title_activity_task">TaskActivity</string>
 </resources>

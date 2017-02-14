@@ -1,4 +1,6 @@
-package io.hikari9.lightdb.meta;
+package io.hikari9.lightdb;
+
+import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -6,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.hikari9.lightdb.LightModel;
 import io.hikari9.lightdb.annotation.ColumnName;
 import io.hikari9.lightdb.annotation.IgnoreField;
 import io.hikari9.lightdb.annotation.TableName;
@@ -78,6 +79,14 @@ public class Metadata {
                     ColumnName columnName = field.getAnnotation(ColumnName.class);
                     if (columnName != null) columnList.add(columnName.value());
                     else columnList.add(field.getName());
+                } else if (field.getType().isAssignableFrom(LightModel.class)) {
+                    Log.e(
+                        "error",
+                        "Field "
+                            + field.getName() + " from class " + model.getCanonicalName()
+                            + " must be wrapped as ForeignKey (i.e. ForeignKey<"
+                            + model.getSimpleName() + "> " + field.getName() + ";"
+                    );
                 }
             }
             model = model.getSuperclass();
