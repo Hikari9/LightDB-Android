@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import io.hikari9.lightdb.annotation.Index;
+
 public class LightDatabase extends SQLiteOpenHelper { // singleton
 
     private static LightDatabase instance = null;
@@ -137,6 +139,8 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
             builder.append(fieldName);
             if (fieldName.equals(LightModel.ID))
                 builder.append(" integer primary key");
+            if (field.isAnnotationPresent(Index.class))
+                builder.append(" index");
         }
         builder.append(")");
         return builder.toString();

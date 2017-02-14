@@ -1,4 +1,4 @@
-package io.hikari9.testdb;
+package io.hikari9.lightdb.testdb;
 
 import io.hikari9.lightdb.LightModel;
 

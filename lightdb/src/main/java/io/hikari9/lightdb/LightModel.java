@@ -2,7 +2,6 @@ package io.hikari9.lightdb;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
