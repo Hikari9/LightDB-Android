@@ -2,6 +2,7 @@ package io.hikari9.lightdb;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -74,6 +75,25 @@ public abstract class LightModel<T extends LightModel> {
             }
         }
         return map;
+    }
+
+    // refresh model from database
+    public T refresh() {
+        Cursor cursor = LightDatabase.findCursorById(getClass(), getId());
+        fromCursor(cursor);
+        cursor.close();
+        return (T) this;
+    }
+
+    // save model to database
+    public T save() {
+        LightDatabase.upsert(getClass(), this);
+        return (T) this;
+    }
+
+    @Override
+    public String toString() {
+        return toContentValues().toString();
     }
 
 }

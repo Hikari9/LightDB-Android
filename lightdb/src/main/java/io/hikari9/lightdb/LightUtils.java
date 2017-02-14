@@ -42,10 +42,12 @@ public class LightUtils {
     }
 
     public static void putContentValue(ContentValues contentValues, String key, Object value) {
-        Class<?> type = value.getClass();
-        if (value == null)
+        if (value == null) {
             contentValues.putNull(key);
-        else if (type == long.class || type == Long.class)
+            return;
+        }
+        Class type = value.getClass();
+        if (type == long.class || type == Long.class)
             contentValues.put(key, (Long) value);
         else if (type == int.class || type == Integer.class)
             contentValues.put(key, (Integer) value);
@@ -69,7 +71,7 @@ public class LightUtils {
             contentValues.put(key, value.toString());
     }
 
-    public static Object extractCursorValue(Class type, Cursor cursor, String columnName) {
+    public static <T> Object extractCursorValue(Class<T> type, Cursor cursor, String columnName) {
         int columnId = cursor.getColumnIndex(columnName);
         if (columnId == -1) return null;
         if (cursor.isNull(columnId)) return null;
@@ -79,7 +81,7 @@ public class LightUtils {
         else if (type == double.class || type == Double.class) return cursor.getDouble(columnId);
         else if (type == float.class || type == Float.class) return cursor.getFloat(columnId);
         else if (type.isAssignableFrom(ForeignKey.class)) // foreign key
-            return new ForeignKey<>(type.getClass(), cursor.getLong(columnId));
+            return new ForeignKey(type.getClass(), cursor.getLong(columnId));
         else if (type == boolean.class || type == Boolean.class) return cursor.getInt(columnId) != 0;
         else if (type == byte.class || type == Byte.class) return (byte) cursor.getInt(columnId);
         else if (type == short.class || type == Short.class) return cursor.getShort(columnId);
@@ -89,6 +91,8 @@ public class LightUtils {
 
 
     public static String queryParams(String query, Object... params) {
+        if (params == null || params.length == 0)
+            return query;
         StringBuilder queryBuilder = new StringBuilder();
         int ptr = 0;
         for (int i = 0; i < query.length(); ++i) {
@@ -117,14 +121,14 @@ public class LightUtils {
     }
 
     // have this to get content values BASED ON MODEL (not from object.getClass())
-    public static ContentValues createContentValues(Class<? extends LightModel> model, LightModel object) {
+    public static ContentValues createContentValues(Class<? extends LightModel> model, LightModel instance) {
         Metadata meta = Metadata.fromModel(model);
         ContentValues contentValues = new ContentValues();
         String[] columns = meta.getColumnNames();
         Field[] fields = meta.getFields();
         for (int i = 0; i < fields.length; ++i) {
             try {
-                LightUtils.putContentValue(contentValues, columns[i], fields[i].get(object));
+                LightUtils.putContentValue(contentValues, columns[i], fields[i].get(instance));
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }

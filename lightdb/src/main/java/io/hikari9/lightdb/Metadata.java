@@ -3,6 +3,7 @@ package io.hikari9.lightdb;
 import android.util.Log;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,8 +73,10 @@ public class Metadata {
      * @param columnList
      */
     private static void parseModelMeta(Class model, List<Field> fieldList, List<String> columnList) {
-        while (model != null) {
+        while (model != null && LightModel.class.isAssignableFrom(model)) {
             for (Field field : model.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()))
+                    continue;
                 if (!field.isAnnotationPresent(IgnoreField.class)) {
                     fieldList.add(field);
                     ColumnName columnName = field.getAnnotation(ColumnName.class);
@@ -90,6 +93,18 @@ public class Metadata {
                 }
             }
             model = model.getSuperclass();
+        }
+        // move ID field to first
+        for (int i = 0; i < columnList.size(); ++i) {
+            if (columnList.get(i).equals(LightModel.ID)) {
+                String temp = columnList.get(i);
+                columnList.set(i, columnList.get(0));
+                columnList.set(0, temp);
+                Field temp2 = fieldList.get(i);
+                fieldList.set(i, fieldList.get(0));
+                fieldList.set(0, temp2);
+                break;
+            }
         }
     }
 

@@ -1,8 +1,6 @@
 package io.hikari9.lightdb;
 
-/**
- * Created by rico on 2/14/17.
- */
+import android.database.Cursor;
 
 public class ForeignKey<T extends LightModel> {
     Class<T> model;
@@ -18,6 +16,9 @@ public class ForeignKey<T extends LightModel> {
         return id;
     }
     T retrieve() {
-        return LightQuery.findById(model, id);
+        return LightDatabase.findById(model, id);
+    }
+    Cursor retrieveCursor() {
+        return LightDatabase.findCursorById(model, id);
     }
 }
