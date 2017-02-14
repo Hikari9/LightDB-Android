@@ -16,8 +16,5 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LightDatabase.initialize(this, "test.db", 4, Person.class);
-        for (Person person : LightDatabase.all(Person.class)) {
-            Toast.makeText(this, person.toString(), Toast.LENGTH_LONG).show();
-        }
     }
 }
