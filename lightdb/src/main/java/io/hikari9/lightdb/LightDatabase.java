@@ -471,6 +471,13 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
                 return LightDatabase.all(this.model, getQueryString());
             }
 
+            public int count() {
+                Cursor cursor = this.cursor();
+                int rows = cursor.getCount();
+                cursor.close();
+                return rows;
+            }
+
             @Override
             public String getQueryString() {
                 StringBuilder builder = new StringBuilder();
@@ -479,7 +486,7 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
                     builder.append("*");
                 else
                     SQLiteQueryBuilder.appendColumns(builder, columns);
-                builder.append(" ").append(Metadata.fromModel(model).getTableName());
+                builder.append(" FROM ").append(Metadata.fromModel(model).getTableName());
                 // add where clause
                 if (whereClause.size() > 0)
                     builder.append(" WHERE ").append(LightUtils.join(" AND ", whereClause));
