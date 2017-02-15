@@ -2,6 +2,11 @@ package io.hikari9.lightdb;
 
 import android.util.Log;
 
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisSerializer;
+import org.objenesis.ObjenesisStd;
+import org.objenesis.instantiator.ObjectInstantiator;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -19,7 +24,9 @@ public class Metadata {
     private Class<? extends LightModel> model;
     private Field[] fields;
     private String[] columns;
+    private ObjectInstantiator instantiator;
     private static final Map<Class<? extends LightModel>, Metadata> instances = new HashMap<>();
+    private static final Objenesis objenesis = new ObjenesisStd();
 
     // derive metadata object from model
     public static Metadata fromModel(Class<? extends LightModel> model) {
@@ -108,6 +115,9 @@ public class Metadata {
         }
     }
 
+    public ObjectInstantiator getInstantiator() {
+        return instantiator;
+    }
     /**
      * Prepare the LightMeta instance by deriving properties from Model class.
      * @param model
@@ -116,6 +126,7 @@ public class Metadata {
 
         // setup matadata for this model
         this.model = model;
+        this.instantiator = objenesis.getInstantiatorOf(model);
 
         // check if custom table name is present, otherwise use the class name
         this.tableName = model.isAnnotationPresent(TableName.class)

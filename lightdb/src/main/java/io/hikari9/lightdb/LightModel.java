@@ -11,7 +11,6 @@ public abstract class LightModel<T extends LightModel> {
 
     protected Long _id; // Android default primary key is _id by convention
     public static final String ID = "_id"; // convention for ID queries
-
     public Long getId() {
         return _id;
     }
@@ -21,15 +20,13 @@ public abstract class LightModel<T extends LightModel> {
      */
     public static <T extends LightModel> T parseCursor(Class<T> model, Cursor cursor) {
         // create empty instance
-        T instance;
-        try {
-            instance = model.newInstance();
-        } catch (InstantiationException|IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
+        T instance = LightModel.createEmptyModel(model);
         instance.fromCursor(cursor);
         return instance;
+    }
+
+    public static <T extends LightModel> T createEmptyModel(Class<T> model) {
+        return (T) Metadata.fromModel(model).getInstantiator().newInstance();
     }
 
     public void fromCursor(Cursor cursor) {

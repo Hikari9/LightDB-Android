@@ -12,9 +12,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LightDatabase.initialize(this, "test.db", 4, Person.class);
+        new Person("First Name", "Last Name").save();
         int sum = LightDatabase.update(Person.class)
             .set("firstName", null)
             .updateAll();
-        System.out.println("Hello world: " + LightDatabase.select(Person.class).count());
+        for (Person person : LightDatabase.all(Person.class)) {
+            System.out.println("Hello world: " + person);
+        }
     }
 }
