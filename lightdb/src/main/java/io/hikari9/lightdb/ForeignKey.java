@@ -26,6 +26,16 @@ public class ForeignKey<T extends LightModel> {
     }
 
     /**
+     * Construct a foreign key reference based on a LightModel and a given instance (can be null).
+     * @param model the class instance of the database model referred by this foreign key
+     * @param instance the entity to be pointed by this foreign key
+     */
+    public ForeignKey(Class<T> model, @Nullable T instance) {
+        this.model = model;
+        this.id = instance == null ? null : instance.getId();
+    }
+
+    /**
      * Sets the id of this foreign key.
      * @param id the id of the entity pointed by this foreign key
      */

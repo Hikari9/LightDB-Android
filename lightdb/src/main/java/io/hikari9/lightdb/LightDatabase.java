@@ -22,7 +22,7 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
     private static Class<? extends LightModel>[] schema = new Class[0];
 
     // get instance of this database
-    protected static LightDatabase getInstance() {
+    public static LightDatabase getInstance() {
         return instance;
     }
 
@@ -71,7 +71,7 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
         LightDatabase
             .getInstance()
             .getWritableDatabase()
-            .execSQL(LightUtils.queryParams(queryString, bindParams), null);
+            .execSQL(LightUtils.queryParams(queryString, bindParams));
     }
 
     public static Cursor readQuery(String queryString, Object... bindParams) {
@@ -103,14 +103,14 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
     // Perform a select query and convert the single row result
     public static <T extends LightModel> T one(Class<T> model, String queryString, Object... bindParams) {
         Cursor cursor = readQuery(queryString, bindParams);
-        if (cursor.getCount() == 0) return null;
+        if (cursor == null || cursor.getCount() == 0) return null;
         T result = LightModel.parseCursor(model, cursor);
         cursor.close();
         return result;
     }
 
     public static void dropTable(String tableName) {
-        executeQuery("DROP TABLE IF EXISTS" + tableName);
+        executeQuery("DROP TABLE IF EXISTS " + tableName);
         Log.i("LightDatabase.dropTable", "Successfully dropped table " + tableName);
     }
 
@@ -131,15 +131,15 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
         builder.append("CREATE TABLE IF NOT EXISTS ");
         builder.append(tableName);
         builder.append("(");
-        boolean first = true;
-        for (Field field : metadata.getFields()) {
-            if (!first) builder.append(",");
-            else first = false;
-            String fieldName = field.getName();
+        Field[] fields = metadata.getFields();
+        String[] columnNames = metadata.getColumnNames();
+        for (int i = 0; i < fields.length; ++i) {
+            if (i != 0) builder.append(",");
+            String fieldName = columnNames[i];
             builder.append(fieldName);
             if (fieldName.equals(LightModel.ID))
                 builder.append(" integer primary key");
-            if (field.isAnnotationPresent(Index.class))
+            if (fields[i].isAnnotationPresent(Index.class))
                 builder.append(" index");
         }
         builder.append(")");
@@ -168,7 +168,7 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
         ContentValues contentValues = instance.toContentValues();
         return 1 == LightDatabase.getInstance()
             .getWritableDatabase()
-            .update(tableName, contentValues, "id=" + instance.getId(), new String[0]);
+            .update(tableName, contentValues, LightModel.ID + "=" + instance.getId(), new String[0]);
     }
 
     // Perform insert into query. Returns NULL if query failed.
@@ -205,7 +205,7 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
         if (id == null) return null;
         return readQuery("SELECT * FROM "
             + Metadata.fromModel(model).getTableName()
-            + " WHERE id=" + id);
+            + " WHERE " + LightModel.ID + "=" + id);
     }
 
     // perform a select query
@@ -477,6 +477,8 @@ public class LightDatabase extends SQLiteOpenHelper { // singleton
 
             public int count() {
                 Cursor cursor = this.cursor();
+                if (cursor == null)
+                    return 0;
                 int rows = cursor.getCount();
                 cursor.close();
                 return rows;
